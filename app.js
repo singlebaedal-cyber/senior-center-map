@@ -4250,25 +4250,35 @@ function renderStatusSummaryChips() {
     const groupPlaces = (!state.activeGroup ? [] : state.places.filter(p => p.group === state.activeGroup))
         .filter(p => !isHeaderRow(p.name, p.address));
 
+    const isAllActive = state.activeFilter === 'all';
+    const allActiveStyle = isAllActive 
+        ? 'background:#0f172a; color:#ffffff !important; font-weight:700;' 
+        : 'background:#ffffff; color:#0f172a; border:1px solid #cbd5e1;';
+    const allCountStyle = isAllActive 
+        ? 'background:rgba(255,255,255,0.25); color:#ffffff;' 
+        : 'background:#e2e8f0; color:#0f172a;';
+
     let html = `
-        <div class="summary-chip ${state.activeFilter === 'all' ? 'active' : ''}" data-filter="all" style="cursor:pointer;">
-            <span class="chip-label">전체</span>
-            <span id="count-total" class="chip-count">${groupPlaces.length}</span>
+        <div class="summary-chip ${isAllActive ? 'active' : ''}" data-filter="all" style="cursor:pointer; ${allActiveStyle}">
+            <span class="chip-label" style="font-weight:inherit; color:inherit;">전체</span>
+            <span id="count-total" class="chip-count" style="${allCountStyle}">${groupPlaces.length}</span>
         </div>
     `;
 
     state.customStatuses.forEach(st => {
         const count = groupPlaces.filter(p => normalizePlaceStatus(p.status) === st.id).length;
         const isActive = state.activeFilter === st.id;
-        const activeStyle = isActive ? `border: 2px solid ${st.color}; font-weight:700; background:#f8fafc;` : '';
+        const activeStyle = isActive 
+            ? `border: 2px solid ${st.color}; font-weight:800; background:#ffffff; color:#0f172a !important; box-shadow:0 1px 4px rgba(0,0,0,0.12);` 
+            : 'border: 1px solid #cbd5e1; background:#ffffff; color:#0f172a;';
 
         html += `
             <div class="summary-chip ${isActive ? 'active' : ''}" data-filter="${st.id}" style="cursor:pointer; ${activeStyle}">
-                <span class="chip-label" style="display:inline-flex; align-items:center; gap:4px;">
-                    <span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:${st.color};"></span>
+                <span class="chip-label" style="display:inline-flex; align-items:center; gap:5px; color:#0f172a !important; font-weight:inherit;">
+                    <span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:${st.color}; flex-shrink:0;"></span>
                     ${escapeHtml(st.label)}
                 </span>
-                <span class="chip-count" style="background:${st.color}; color:white;">${count}</span>
+                <span class="chip-count" style="background:${st.color}; color:#ffffff; font-weight:700;">${count}</span>
             </div>
         `;
     });
