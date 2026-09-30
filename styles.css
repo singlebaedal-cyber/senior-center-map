@@ -761,6 +761,51 @@ body, html {
     align-items: center;
     margin-bottom: 6px;
 }
+.popup-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.popup-edit-btn {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #2563eb;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    transition: all 0.18s ease;
+    flex-shrink: 0;
+}
+.popup-edit-btn:hover {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(37, 99, 235, 0.25);
+}
+.popup-edit-btn:active {
+    transform: scale(0.92);
+}
+.popup-edit-btn.popup-addr-edit-btn {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #2563eb;
+}
+.popup-edit-btn.popup-addr-edit-btn:hover {
+    background: #2563eb;
+    color: #ffffff;
+}
 .popup-close-btn {
     background: none;
     border: none;
@@ -1198,6 +1243,40 @@ body, html {
     .popup-memo-textarea {
         font-size: 13px !important;
         min-height: 48px !important;
+    }
+
+    /* Mobile Popup Edit & Action Optimization */
+    .popup-edit-btn {
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 13px !important;
+        border-radius: 7px !important;
+    }
+    .popup-edit-btn.popup-addr-edit-btn {
+        width: 26px !important;
+        height: 26px !important;
+        font-size: 12px !important;
+        border-radius: 6px !important;
+    }
+    .popup-close-btn {
+        font-size: 22px !important;
+        padding: 4px 6px !important;
+    }
+    #modal-edit-place .modal-content {
+        width: 95vw !important;
+        max-width: 95vw !important;
+        max-height: 90vh !important;
+        border-radius: 16px !important;
+        margin: auto !important;
+    }
+    #modal-edit-place .modal-body {
+        padding: 14px 16px !important;
+        max-height: 72vh !important;
+    }
+    #modal-edit-place input,
+    #modal-edit-place select,
+    #modal-edit-place textarea {
+        font-size: 15px !important;
     }
 }
 

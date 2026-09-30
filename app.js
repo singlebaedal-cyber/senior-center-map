@@ -1187,12 +1187,22 @@ function renderKakaoMarkers(places = null, shouldFitBounds = false) {
                             <span class="multi-place-name" title="${escapeHtml(dName)}">
                                 <span style="color:#2563eb; font-weight:800;">${dSeq}</span>👵 ${escapeHtml(dName)}
                             </span>
-                            <select class="popup-status-select multi-status-select" data-id="${p.id}" style="background:${sObj.color}; color:${getContrastTextColor(sObj.color)};">
-                                ${stOptions}
-                            </select>
+                            <div style="display:flex; align-items:center; gap:5px;">
+                                <button type="button" class="popup-edit-btn" data-id="${p.id}" title="주소 및 정보 수정" aria-label="수정">
+                                    <i class="fa-solid fa-pencil"></i>
+                                </button>
+                                <select class="popup-status-select multi-status-select" data-id="${p.id}" style="background:${sObj.color}; color:${getContrastTextColor(sObj.color)};">
+                                    ${stOptions}
+                                </select>
+                            </div>
                         </div>
-                        <div class="popup-address" style="font-size:11.5px; color:#64748b; margin-bottom:4px;">
-                            <i class="fa-solid fa-location-dot" style="color:#94a3b8;"></i> ${escapeHtml(p.address)}
+                        <div class="popup-address" style="font-size:11.5px; color:#64748b; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center; gap:4px;">
+                            <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(p.address)}">
+                                <i class="fa-solid fa-location-dot" style="color:#ef4444;"></i> ${escapeHtml(p.address)}
+                            </span>
+                            <button type="button" class="popup-edit-btn popup-addr-edit-btn" data-id="${p.id}" title="주소 수정" aria-label="주소 수정">
+                                <i class="fa-solid fa-pencil"></i>
+                            </button>
                         </div>
                         ${cHtml}
                         <div class="popup-memo-box">
@@ -1240,8 +1250,13 @@ function renderKakaoMarkers(places = null, shouldFitBounds = false) {
             popupEl.innerHTML = `
                 <div class="shadow-popup">
                     <div class="popup-header-row">
-                        <span class="popup-title" style="font-size:14.5px; font-weight:700; color:#111;">👵 ${escapeHtml(firstDisplayName)}</span>
-                        <button class="popup-close-btn">&times;</button>
+                        <span class="popup-title" style="font-size:14.5px; font-weight:700; color:#111; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-right:6px;" title="${escapeHtml(firstDisplayName)}">👵 ${escapeHtml(firstDisplayName)}</span>
+                        <div class="popup-header-actions">
+                            <button type="button" class="popup-edit-btn" data-id="${firstPlace.id}" title="주소 및 정보 수정" aria-label="수정">
+                                <i class="fa-solid fa-pencil"></i>
+                            </button>
+                            <button type="button" class="popup-close-btn" aria-label="닫기">&times;</button>
+                        </div>
                     </div>
                     <div class="popup-status-box">
                         <span style="font-size:12px; font-weight:700; color:#475569; display:flex; align-items:center; gap:5px; white-space:nowrap;">
@@ -1251,8 +1266,13 @@ function renderKakaoMarkers(places = null, shouldFitBounds = false) {
                             ${statusOptionsHtml}
                         </select>
                     </div>
-                    <div class="popup-address" style="font-size:12px; color:#555; margin-bottom:6px;">
-                        <i class="fa-solid fa-location-dot"></i> ${escapeHtml(firstPlace.address)}
+                    <div class="popup-address" style="font-size:12px; color:#555; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                        <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(firstPlace.address)}">
+                            <i class="fa-solid fa-location-dot" style="color:#ef4444;"></i> ${escapeHtml(firstPlace.address)}
+                        </span>
+                        <button type="button" class="popup-edit-btn popup-addr-edit-btn" data-id="${firstPlace.id}" title="주소 수정" aria-label="주소 수정">
+                            <i class="fa-solid fa-pencil"></i>
+                        </button>
                     </div>
                     ${renderContactsHtml(getPlaceContacts(firstPlace), true, firstPlace.id)}
                     <div class="popup-memo-box">
@@ -1323,6 +1343,18 @@ function renderKakaoMarkers(places = null, shouldFitBounds = false) {
         ["click", "mousedown", "mouseup", "touchstart", "touchend", "pointerdown", "pointerup"].forEach(evtName => {
             popupEl.addEventListener(evtName, (e) => {
                 e.stopPropagation();
+            });
+        });
+
+        // Edit button click inside popup (opens comprehensive place & address edit modal)
+        popupEl.querySelectorAll(".popup-edit-btn").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                const targetId = btn.getAttribute("data-id");
+                if (targetId) {
+                    openPlaceEditModal(targetId);
+                }
             });
         });
 
@@ -1520,12 +1552,22 @@ function renderLeafletMarkers(places = null, shouldFitBounds = false) {
                             <span class="multi-place-name" title="${escapeHtml(dName)}">
                                 <span style="color:#2563eb; font-weight:800;">${dSeq}</span>👵 ${escapeHtml(dName)}
                             </span>
-                            <select class="popup-status-select multi-status-select" data-id="${p.id}" style="background:${sObj.color}; color:${getContrastTextColor(sObj.color)};">
-                                ${stOptions}
-                            </select>
+                            <div style="display:flex; align-items:center; gap:5px;">
+                                <button type="button" class="popup-edit-btn" data-id="${p.id}" title="주소 및 정보 수정" aria-label="수정">
+                                    <i class="fa-solid fa-pencil"></i>
+                                </button>
+                                <select class="popup-status-select multi-status-select" data-id="${p.id}" style="background:${sObj.color}; color:${getContrastTextColor(sObj.color)};">
+                                    ${stOptions}
+                                </select>
+                            </div>
                         </div>
-                        <div class="popup-address" style="font-size:11.5px; color:#64748b; margin-bottom:4px;">
-                            <i class="fa-solid fa-location-dot" style="color:#94a3b8;"></i> ${escapeHtml(p.address)}
+                        <div class="popup-address" style="font-size:11.5px; color:#64748b; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center; gap:4px;">
+                            <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(p.address)}">
+                                <i class="fa-solid fa-location-dot" style="color:#ef4444;"></i> ${escapeHtml(p.address)}
+                            </span>
+                            <button type="button" class="popup-edit-btn popup-addr-edit-btn" data-id="${p.id}" title="주소 수정" aria-label="주소 수정">
+                                <i class="fa-solid fa-pencil"></i>
+                            </button>
                         </div>
                         ${cHtml}
                         <div class="popup-memo-box">
@@ -1569,7 +1611,12 @@ function renderLeafletMarkers(places = null, shouldFitBounds = false) {
             popupContent = `
                 <div class="popup-card">
                     <div class="popup-header-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                        <span class="popup-title" style="font-size:14.5px; font-weight:700; color:#111;">👵 ${escapeHtml(firstDisplayName)}</span>
+                        <span class="popup-title" style="font-size:14.5px; font-weight:700; color:#111; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-right:6px;" title="${escapeHtml(firstDisplayName)}">👵 ${escapeHtml(firstDisplayName)}</span>
+                        <div class="popup-header-actions">
+                            <button type="button" class="popup-edit-btn" data-id="${firstPlace.id}" title="주소 및 정보 수정" aria-label="수정">
+                                <i class="fa-solid fa-pencil"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="popup-status-box">
                         <span style="font-size:12px; font-weight:700; color:#475569; display:flex; align-items:center; gap:5px; white-space:nowrap;">
@@ -1579,8 +1626,13 @@ function renderLeafletMarkers(places = null, shouldFitBounds = false) {
                             ${statusOptionsHtml}
                         </select>
                     </div>
-                    <div class="popup-address" style="font-size:12px; color:#555; margin-bottom:6px;">
-                        <i class="fa-solid fa-location-dot"></i> ${escapeHtml(firstPlace.address)}
+                    <div class="popup-address" style="font-size:12px; color:#555; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                        <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(firstPlace.address)}">
+                            <i class="fa-solid fa-location-dot" style="color:#ef4444;"></i> ${escapeHtml(firstPlace.address)}
+                        </span>
+                        <button type="button" class="popup-edit-btn popup-addr-edit-btn" data-id="${firstPlace.id}" title="주소 수정" aria-label="주소 수정">
+                            <i class="fa-solid fa-pencil"></i>
+                        </button>
                     </div>
                     ${renderContactsHtml(getPlaceContacts(firstPlace), true, firstPlace.id)}
                     <div class="popup-memo-box">
@@ -1613,6 +1665,17 @@ function renderLeafletMarkers(places = null, shouldFitBounds = false) {
         marker.on("popupopen", (e) => {
             const popupNode = e.popup.getElement();
             if (popupNode) {
+                popupNode.querySelectorAll(".popup-edit-btn").forEach(btn => {
+                    btn.addEventListener("click", (ev) => {
+                        ev.stopPropagation();
+                        ev.preventDefault();
+                        const pId = btn.getAttribute("data-id");
+                        if (pId) {
+                            openPlaceEditModal(pId);
+                        }
+                    });
+                });
+
                 popupNode.querySelectorAll(".popup-status-select").forEach(sel => {
                     sel.addEventListener("change", (ev) => {
                         ev.stopPropagation();
@@ -2278,8 +2341,17 @@ function initUIEvents() {
                 }
             }
 
-            saveState();
+            await saveState();
             renderPlaceList();
+
+            // Pan to updated location on map if coordinates available
+            if (place.lat && place.lng) {
+                if (state.activeMapEngine === "kakao" && state.kakaoMap) {
+                    state.kakaoMap.panTo(new kakao.maps.LatLng(place.lat, place.lng));
+                } else if (state.leafletMap) {
+                    state.leafletMap.panTo([place.lat, place.lng]);
+                }
+            }
 
             const modalEditPlace = document.getElementById("modal-edit-place");
             if (modalEditPlace) modalEditPlace.style.display = "none";
@@ -2291,13 +2363,18 @@ function initUIEvents() {
         });
     }
 
-    // Modal close button support for modal-edit-place
+    // Modal close button and backdrop support for modal-edit-place
     const modalEditPlace = document.getElementById("modal-edit-place");
     if (modalEditPlace) {
         modalEditPlace.querySelectorAll(".btn-close-modal").forEach(btn => {
             btn.addEventListener("click", () => {
                 modalEditPlace.style.display = "none";
             });
+        });
+        modalEditPlace.addEventListener("click", (e) => {
+            if (e.target === modalEditPlace) {
+                modalEditPlace.style.display = "none";
+            }
         });
     }
 
@@ -3862,12 +3939,17 @@ function openPlaceEditModal(placeId) {
     const place = state.places.find(p => p.id === placeId);
     if (!place) return;
 
+    state.selectedPlaceId = placeId;
+
     const modal = document.getElementById("modal-edit-place");
     if (!modal) {
         // Fallback to legacy address edit if modal not found
         openAddressEditModalLegacy(placeId);
         return;
     }
+
+    const modalBody = modal.querySelector(".modal-body");
+    if (modalBody) modalBody.scrollTop = 0;
 
     document.getElementById("edit-place-id").value = place.id;
     document.getElementById("edit-place-name").value = place.name || "";
