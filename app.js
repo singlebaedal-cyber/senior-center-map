@@ -275,6 +275,17 @@ function sanitizeName(name, address) {
     return clean;
 }
 
+function getTmapNavUrl(place) {
+    if (!place) return "tmap://";
+    const displayName = sanitizeName(place.name, place.address);
+    const goalName = displayName || place.address || "목적지";
+    if (place.lat && place.lng && !isNaN(place.lat) && !isNaN(place.lng)) {
+        return `tmap://route?goalname=${encodeURIComponent(goalName)}&goalx=${place.lng}&goaly=${place.lat}`;
+    }
+    const query = place.address || displayName;
+    return `tmap://search?name=${encodeURIComponent(query)}`;
+}
+
 const CHANGWON_EXCEL_CONTACTS = {
     "판신": [{ role: "회장", phone: "010-5663-7152" }, { role: "총무", phone: "010-4556-8924" }],
     "모암": [{ role: "회장", phone: "010-4593-9075" }, { role: "총무", phone: "010-2083-3551" }],
@@ -1216,7 +1227,7 @@ function renderKakaoMarkers(places = null, shouldFitBounds = false) {
                 `;
             });
 
-            const naverNavUrl = `https://map.naver.com/v5/search/${encodeURIComponent(firstPlace.address)}`;
+            const naverNavUrl = getTmapNavUrl(firstPlace);
             const kakaoNavUrl = `https://map.kakao.com/link/search/${encodeURIComponent(firstPlace.address)}`;
 
             popupEl.innerHTML = `
@@ -1231,8 +1242,8 @@ function renderKakaoMarkers(places = null, shouldFitBounds = false) {
                         ${itemsHtml}
                     </div>
                     <div class="popup-actions" style="display:flex; gap:6px; margin-top:10px;">
-                        <a href="${naverNavUrl}" target="_blank" class="popup-btn popup-btn-naver" style="flex:1; padding:6px; font-size:11px; font-weight:600; border-radius:4px; text-decoration:none; text-align:center;">
-                            <i class="fa-solid fa-diamond-turn-right"></i> 네이버 길찾기
+                        <a href="${naverNavUrl}" class="popup-btn popup-btn-tmap" style="flex:1; padding:6px; font-size:11px; font-weight:600; border-radius:4px; text-decoration:none; text-align:center;">
+                            <i class="fa-solid fa-diamond-turn-right"></i> 티맵 길찾기
                         </a>
                         <a href="${kakaoNavUrl}" target="_blank" class="popup-btn popup-btn-kakao" style="flex:1; padding:6px; font-size:11px; font-weight:600; border-radius:4px; text-decoration:none; text-align:center;">
                             <i class="fa-solid fa-map"></i> 카카오맵
@@ -1243,7 +1254,7 @@ function renderKakaoMarkers(places = null, shouldFitBounds = false) {
             `;
         } else {
             // Single senior center popup
-            const naverNavUrl = `https://map.naver.com/v5/search/${encodeURIComponent(firstPlace.address)}`;
+            const naverNavUrl = getTmapNavUrl(firstPlace);
             const kakaoNavUrl = `https://map.kakao.com/link/search/${encodeURIComponent(firstPlace.address)}`;
             const statusOptionsHtml = renderStatusOptionsHtml(firstStatusObj.id);
 
@@ -1283,8 +1294,8 @@ function renderKakaoMarkers(places = null, shouldFitBounds = false) {
                         <textarea class="popup-memo-textarea" data-id="${firstPlace.id}" rows="2" placeholder="특이사항 / 방문메모 입력...">${escapeHtml(firstPlace.memo || "")}</textarea>
                     </div>
                     <div class="popup-actions" style="display:flex; gap:6px; margin-top:6px;">
-                        <a href="${naverNavUrl}" target="_blank" class="popup-btn popup-btn-naver" style="flex:1; padding:6px; font-size:11px; font-weight:600; border-radius:4px; text-decoration:none; text-align:center;">
-                            <i class="fa-solid fa-diamond-turn-right"></i> 네이버 길찾기
+                        <a href="${naverNavUrl}" class="popup-btn popup-btn-tmap" style="flex:1; padding:6px; font-size:11px; font-weight:600; border-radius:4px; text-decoration:none; text-align:center;">
+                            <i class="fa-solid fa-diamond-turn-right"></i> 티맵 길찾기
                         </a>
                         <a href="${kakaoNavUrl}" target="_blank" class="popup-btn popup-btn-kakao" style="flex:1; padding:6px; font-size:11px; font-weight:600; border-radius:4px; text-decoration:none; text-align:center;">
                             <i class="fa-solid fa-map"></i> 카카오맵
@@ -1586,7 +1597,7 @@ function renderLeafletMarkers(places = null, shouldFitBounds = false) {
                 `;
             });
 
-            const naverUrl = `https://map.naver.com/v5/search/${encodeURIComponent(firstPlace.address)}`;
+            const naverUrl = getTmapNavUrl(firstPlace);
             const kakaoUrl = `https://map.kakao.com/link/search/${encodeURIComponent(firstPlace.address)}`;
 
             popupContent = `
@@ -1598,13 +1609,13 @@ function renderLeafletMarkers(places = null, shouldFitBounds = false) {
                         ${itemsHtml}
                     </div>
                     <div class="popup-actions" style="margin-top:8px; display:flex; gap:6px;">
-                        <a href="${naverUrl}" target="_blank" class="popup-btn popup-btn-naver" style="flex:1; padding:6px; font-size:11px; font-weight:600; text-align:center;">네이버 길찾기</a>
+                        <a href="${naverUrl}" class="popup-btn popup-btn-tmap" style="flex:1; padding:6px; font-size:11px; font-weight:600; text-align:center;">티맵 길찾기</a>
                         <a href="${kakaoUrl}" target="_blank" class="popup-btn popup-btn-kakao" style="flex:1; padding:6px; font-size:11px; font-weight:600; text-align:center;">카카오맵</a>
                     </div>
                 </div>
             `;
         } else {
-            const naverUrl = `https://map.naver.com/v5/search/${encodeURIComponent(firstPlace.address)}`;
+            const naverUrl = getTmapNavUrl(firstPlace);
             const kakaoUrl = `https://map.kakao.com/link/search/${encodeURIComponent(firstPlace.address)}`;
             const statusOptionsHtml = renderStatusOptionsHtml(firstStatusObj.id);
 
@@ -1648,7 +1659,7 @@ function renderLeafletMarkers(places = null, shouldFitBounds = false) {
                         </div>
                     </div>
                     <div class="popup-actions" style="margin-top:6px; display:flex; gap:6px;">
-                        <a href="${naverUrl}" target="_blank" class="popup-btn popup-btn-naver" style="flex:1; padding:6px; font-size:11px; font-weight:600; text-align:center;">네이버 길찾기</a>
+                        <a href="${naverUrl}" class="popup-btn popup-btn-tmap" style="flex:1; padding:6px; font-size:11px; font-weight:600; text-align:center;">티맵 길찾기</a>
                         <a href="${kakaoUrl}" target="_blank" class="popup-btn popup-btn-kakao" style="flex:1; padding:6px; font-size:11px; font-weight:600; text-align:center;">카카오맵</a>
                     </div>
                 </div>
@@ -2735,7 +2746,7 @@ function renderPlaceListUIOnly() {
             `;
 
             const displayName = sanitizeName(item.name, item.address);
-            const naverNavUrl = `https://map.naver.com/v5/search/${encodeURIComponent(item.address)}`;
+            const naverNavUrl = getTmapNavUrl(item);
             const kakaoNavUrl = `https://map.kakao.com/link/search/${encodeURIComponent(item.address)}`;
             const seqNum = groupPlaces.indexOf(item) + 1;
             const displaySeq = seqNum > 0 ? seqNum : "";
@@ -2760,8 +2771,8 @@ function renderPlaceListUIOnly() {
                     <textarea class="place-memo-textarea" data-id="${item.id}" rows="2" placeholder="방문 특이사항 / 메모 입력...">${escapeHtml(item.memo || "")}</textarea>
                 </div>
                 <div class="place-actions">
-                    <a href="${naverNavUrl}" target="_blank" class="action-link naver-nav">
-                        <i class="fa-solid fa-diamond-turn-right"></i> 네이버 길찾기
+                    <a href="${naverNavUrl}" class="action-link tmap-nav">
+                        <i class="fa-solid fa-diamond-turn-right"></i> 티맵 길찾기
                     </a>
                     <a href="${kakaoNavUrl}" target="_blank" class="action-link">
                         <i class="fa-solid fa-map"></i> 카카오맵

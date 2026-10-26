@@ -467,7 +467,16 @@ body, html {
     background: #e9ecef;
     color: #111;
 }
+.action-link.tmap-nav,
 .action-link.naver-nav {
+    color: #2563eb;
+    background: #eff6ff;
+}
+.action-link.tmap-nav:hover,
+.action-link.naver-nav:hover {
+    background: #dbeafe;
+}
+.legacy-naver-nav {
     color: #03cf5d;
     background: #e8f9ef;
 }
@@ -869,6 +878,10 @@ body, html {
     text-align: center;
     text-decoration: none;
     display: inline-block;
+}
+.popup-btn-tmap {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: white;
 }
 .popup-btn-naver {
     background-color: #03cf5d;
