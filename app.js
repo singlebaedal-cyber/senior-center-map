@@ -238,7 +238,8 @@ function deduplicatePlaces(placesList) {
 
         if (!normName && !normAddr) continue;
 
-        const key = `${normName}|${normAddr}`.toLowerCase();
+        const normGroup = String(p.group || "").trim().replace(/\s+/g, "");
+        const key = `${normGroup}|${normName}|${normAddr}`.toLowerCase();
 
         if (seen.has(key)) {
             continue; // Exclude duplicate
@@ -713,7 +714,7 @@ async function syncDataFromServer() {
                 }
 
                 // If user just saved locally within the last 3 seconds, wait for post to settle
-                if (Date.now() - (state.lastSavedTimestamp || 0) < 3000) {
+                if (state.isImportingOrSaving || Date.now() - (state.lastSavedTimestamp || 0) < 5000) {
                     return true;
                 }
 
@@ -989,6 +990,7 @@ async function saveState(savedBy = null) {
                 savedBy: sourceDevice
             })
         });
+        state.lastSavedTimestamp = Date.now();
         if (!resp.ok) {
             console.warn(`서버 응답 오류 (${resp.status}) - 로컬 및 IndexedDB에는 안전하게 영구 저장되었습니다.`);
         }
@@ -3506,6 +3508,47 @@ function initImportMappingEvents() {
     });
 }
 
+function splitSingleSpaceImportLine(line) {
+    let s = String(line || "").trim();
+    if (!s) return [];
+    let seq = null;
+    const seqMatch = s.match(/^(\d{1,4})[\.\)]?\s+(.*)$/);
+    if (seqMatch) {
+        seq = seqMatch[1];
+        s = seqMatch[2].trim();
+    }
+    const phones = [];
+    const phoneRegex = /(?:01[016789][-\s\.]?\d{3,4}[-\s\.]?\d{4}|0\d{1,2}[-\s\.]?\d{3,4}[-\s\.]?\d{4})/g;
+    let m;
+    let firstPhoneIdx = -1;
+    while ((m = phoneRegex.exec(s)) !== null) {
+        if (firstPhoneIdx === -1) firstPhoneIdx = m.index;
+        phones.push(m[0].trim());
+    }
+    if (firstPhoneIdx !== -1) {
+        s = s.substring(0, firstPhoneIdx).trim();
+    }
+    let name = s;
+    let addr = "";
+    const addrStartMatch = s.match(/^(\S+(?:\s+\S+)?)\s+((?:경상남도|경남|부산|서울|대구|인천|광주|대전|울산|세종|경기도|경기|강원|충북|충남|전북|전남|경북|제주|[가-힣]{1,6}(?:시|군|구|읍|면|동|로|길))\s*.*)$/);
+    if (addrStartMatch) {
+        name = addrStartMatch[1].trim();
+        addr = addrStartMatch[2].trim();
+    } else {
+        const spIdx = s.indexOf(" ");
+        if (spIdx > 0) {
+            name = s.substring(0, spIdx).trim();
+            addr = s.substring(spIdx + 1).trim();
+        }
+    }
+    const result = [];
+    if (seq !== null) result.push(seq);
+    result.push(name);
+    if (addr) result.push(addr);
+    phones.forEach(p => result.push(p));
+    return result;
+}
+
 function parseTextToMatrix(text) {
     if (!text || !text.trim()) return [];
     const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
@@ -3519,6 +3562,9 @@ function parseTextToMatrix(text) {
             parts = line.split(",");
         } else {
             parts = line.split(/\s{2,}/);
+            if (parts.length === 1 && line.includes(" ")) {
+                parts = splitSingleSpaceImportLine(line);
+            }
         }
         parts = parts.map(p => p.trim());
         if (parts.length > 0 && parts.some(Boolean)) {
@@ -3596,7 +3642,7 @@ function updateColumnMappingUI() {
         });
 
         // Preserve previous user selection (including "-1" -- 선택 안 함 --)
-        if (curVal !== null && curVal !== undefined && curVal !== "" && parseInt(curVal) < importHeaders.length) {
+        if (!isNewText && curVal !== null && curVal !== undefined && curVal !== "" && parseInt(curVal) < importHeaders.length) {
             select.value = curVal;
         } else {
             select.value = "-1";
@@ -3778,6 +3824,7 @@ async function processImportData() {
     const labelChongmu = (document.getElementById("col-label-chongmu")?.value || "총무").trim();
     const labelJang = (document.getElementById("col-label-jang")?.value || "이장/사무장").trim();
 
+    state.isImportingOrSaving = true;
     const newPlaces = [];
     const total = rowsToProcess.length;
 
@@ -3815,19 +3862,21 @@ async function processImportData() {
             if (!p) return false;
             const pNormName = String(p.name || "").trim().replace(/\s+/g, "").toLowerCase();
             const pNormAddr = String(p.address || "").trim().replace(/\s+/g, "").toLowerCase();
-            return (pNormName === normName && pNormAddr === normAddr) || (p.group === groupNameInput && pNormName === normName);
+            return p.group === groupNameInput && ((pNormName === normName && pNormAddr === normAddr) || pNormName === normName);
         });
 
-        let lat = existingPlace?.lat;
-        let lng = existingPlace?.lng;
-        let jibunAddress = existingPlace?.jibunAddress || "";
-        let finalAddr = existingPlace?.address || rawAddr;
+        const coordDonor = existingPlace || state.places.find(p => p && p.lat && p.lng && (String(p.address || "").trim().replace(/\s+/g, "").toLowerCase() === normAddr || (String(p.name || "").trim().replace(/\s+/g, "").toLowerCase() === normName && String(p.address || "").trim().replace(/\s+/g, "").toLowerCase().includes(normAddr))));
+        let lat = existingPlace?.lat || coordDonor?.lat;
+        let lng = existingPlace?.lng || coordDonor?.lng;
+        let jibunAddress = existingPlace?.jibunAddress || coordDonor?.jibunAddress || "";
+        let finalAddr = existingPlace?.address || coordDonor?.address || rawAddr;
         let placeStatus = existingPlace ? normalizePlaceStatus(existingPlace.status) : getDefaultStatusId();
         let placeMemo = existingPlace?.memo || "";
 
         // If coordinates not already present or address changed, geocode
         if (!lat || !lng || (existingPlace && existingPlace.address !== rawAddr)) {
-            const geocodeRes = await geocodeAddress(rawAddr, rawName, "");
+            const inferredRegion = /창원/.test(groupNameInput) ? "경상남도 창원시" : (/거제/.test(groupNameInput) ? "경상남도 거제시" : (/하동/.test(groupNameInput) ? "경상남도 하동군" : ""));
+            const geocodeRes = await geocodeAddress(rawAddr, rawName, inferredRegion);
             lat = geocodeRes.lat;
             lng = geocodeRes.lng;
             jibunAddress = geocodeRes.jibunAddress || "";
@@ -3857,7 +3906,21 @@ async function processImportData() {
     const combinedPlaces = [...otherGroupPlaces, ...newPlaces];
     const deduplicatedCombined = deduplicatePlaces(combinedPlaces);
 
+    if (newPlaces.length === 0) {
+        state.isImportingOrSaving = false;
+        if (progressContainer) progressContainer.style.display = "none";
+        alert("⚠️ 입력된 데이터에서 유효한 경로당명과 주소를 찾지 못했습니다. 열(컬럼) 매핑을 확인해 주세요.");
+        return;
+    }
+
     state.places = deduplicatedCombined;
+    try {
+        await saveState("import");
+    } finally {
+        state.isImportingOrSaving = false;
+    }
+    renderGroupSelect();
+    renderPlaceList(true);
     saveState();
     renderPlaceList();
 
