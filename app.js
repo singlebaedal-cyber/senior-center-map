@@ -127,6 +127,7 @@ const state = {
     masterPin: localStorage.getItem("master_pin") || "1234",
     searchKeyword: "",
     selectedPlaceId: null,
+    pinDisplayMode: "number",
     kakaoJsKey: localStorage.getItem("kakao_js_key") || "82823b59e8640ba8b58e403c7463064a",
     lastSavedTimestamp: parseInt(localStorage.getItem("senior_center_last_saved") || "0", 10),
     activeMapEngine: "kakao", // "kakao" or "leaflet"
@@ -1074,6 +1075,73 @@ function groupPlacesByLocation(places) {
     return clusters;
 }
 
+function buildPinBadgeHtml(clusterPlaces, groupPlaces) {
+    const count = clusterPlaces.length;
+    const firstPlace = clusterPlaces[0];
+    const firstSeq = groupPlaces.indexOf(firstPlace) + 1;
+    const firstStatusObj = getStatusObj(firstPlace.status);
+    const firstDisplayName = sanitizeName(firstPlace.name, firstPlace.address);
+    const isMulti = count > 1;
+    const isNumberOnly = state.pinDisplayMode !== "number_name";
+
+    if (isMulti) {
+        const seqNums = clusterPlaces.map(p => {
+            const s = groupPlaces.indexOf(p) + 1;
+            return s > 0 ? s : "";
+        }).filter(Boolean);
+        const seqStr = seqNums.length > 0 ? seqNums.join(",") : "";
+        const fullTitle = `${seqStr ? seqStr + '. ' : ''}${firstDisplayName} 외 ${count - 1}곳 (동일건물)`;
+
+        if (isNumberOnly) {
+            return `
+                <div class="custom-pin-badge is-multi-building pin-mode-number" style="border-color: #2563eb;" title="${escapeHtml(fullTitle)}">
+                    <span class="pin-number multi-building-icon">🏢</span>
+                    <span class="pin-label" style="color:#1d4ed8; font-weight:800;">${escapeHtml(seqStr || (count + '곳'))}</span>
+                </div>
+            `;
+        }
+        return `
+            <div class="custom-pin-badge is-multi-building" style="border-color: #2563eb;" title="${escapeHtml(fullTitle)}">
+                <span class="pin-number multi-building-icon">🏢</span>
+                <span class="pin-label" style="color:#1d4ed8; font-weight:800;">
+                    ${seqStr ? `${seqStr}. ` : ''}${escapeHtml(firstDisplayName)} 외 ${count - 1}곳 (동일건물)
+                </span>
+            </div>
+        `;
+    } else {
+        const displaySeq = firstSeq > 0 ? firstSeq : "•";
+        const contrastColor = getContrastTextColor(firstStatusObj.color);
+        const fullTitle = `${firstSeq > 0 ? firstSeq + '. ' : ''}${firstDisplayName}`;
+
+        if (isNumberOnly) {
+            return `
+                <div class="custom-pin-badge pin-mode-number" style="border-color: ${firstStatusObj.color};" title="${escapeHtml(fullTitle)}">
+                    <span class="pin-number" style="background: ${firstStatusObj.color}; color: ${contrastColor};">${displaySeq}</span>
+                </div>
+            `;
+        }
+        return `
+            <div class="custom-pin-badge" style="border-color: ${firstStatusObj.color};" title="${escapeHtml(fullTitle)}">
+                <span class="pin-number" style="background: ${firstStatusObj.color}; color: ${contrastColor};">${firstSeq > 0 ? firstSeq : ""}</span>
+                <span class="pin-label">${escapeHtml(firstDisplayName)}</span>
+            </div>
+        `;
+    }
+}
+
+function setPinDisplayMode(mode) {
+    state.pinDisplayMode = mode === "number_name" ? "number_name" : "number";
+    document.querySelectorAll(".pin-mode-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.getAttribute("data-pin-mode") === state.pinDisplayMode);
+    });
+    const filtered = getFilteredPlaces();
+    if (state.activeMapEngine === "kakao" && state.kakaoMap) {
+        renderKakaoMarkers(filtered, false);
+    } else if (state.leafletMap) {
+        renderLeafletMarkers(filtered, false);
+    }
+}
+
 function renderKakaoMarkers(places = null, shouldFitBounds = false) {
     if (!state.kakaoMap) return;
 
@@ -1154,7 +1222,7 @@ function renderKakaoMarkers(places = null, shouldFitBounds = false) {
         // Custom Overlay Pin Badge
         const content = document.createElement("div");
         content.className = "kakao-custom-overlay";
-        content.innerHTML = pinHtml;
+        content.innerHTML = buildPinBadgeHtml(clusterPlaces, groupPlaces);
 
         const baseZIndex = 100 + (1000 - firstSeq);
         const overlay = new kakao.maps.CustomOverlay({
@@ -1540,8 +1608,8 @@ function renderLeafletMarkers(places = null, shouldFitBounds = false) {
 
         const customIcon = L.divIcon({
             className: "custom-div-icon",
-            html: iconHtml,
-            iconSize: [isMulti ? 150 : 110, 24],
+            html: buildPinBadgeHtml(clusterPlaces, groupPlaces),
+            iconSize: state.pinDisplayMode !== "number_name" ? [isMulti ? 60 : 28, 24] : [isMulti ? 150 : 110, 24],
             iconAnchor: [12, 24],
             popupAnchor: [0, -24]
         });
@@ -1777,6 +1845,13 @@ function renderLeafletMarkers(places = null, shouldFitBounds = false) {
    UI Event Handlers & Modal Logic
 ---------------------------------------------------- */
 function initUIEvents() {
+    document.querySelectorAll(".pin-mode-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const mode = btn.getAttribute("data-pin-mode");
+            if (mode) setPinDisplayMode(mode);
+        });
+    });
     const groupSelect = document.getElementById("group-select");
     groupSelect.addEventListener("change", (e) => {
         state.activeGroup = e.target.value;
@@ -2975,7 +3050,14 @@ function updatePlaceStatus(placeId, newStatusId) {
                 iconAnchor: [12, 24],
                 popupAnchor: [0, -24]
             });
-            marker.setIcon(newIcon);
+            const updatedIcon = L.divIcon({
+                className: "custom-div-icon",
+                html: buildPinBadgeHtml([place], groupPlaces),
+                iconSize: state.pinDisplayMode !== "number_name" ? [28, 24] : [110, 24],
+                iconAnchor: [12, 24],
+                popupAnchor: [0, -24]
+            });
+            marker.setIcon(updatedIcon);
         }
 
         const popup = marker.getPopup();

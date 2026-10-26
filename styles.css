@@ -586,6 +586,56 @@ body, html {
 /* ----------------------------------------------------
    Custom Pin Badges (Number + Senior Center Name)
 ---------------------------------------------------- */
+/* Pin Display Mode Toggle (번호 / 번호+경로당명) */
+.pin-mode-toggle,
+.map-pin-mode-bar {
+    display: inline-flex;
+    align-items: center;
+    background: #f1f5f9;
+    padding: 3px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    gap: 2px;
+}
+
+.map-pin-mode-bar {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 500;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    padding: 4px;
+    border-radius: 12px;
+}
+
+.pin-mode-btn {
+    border: none;
+    background: transparent;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 11px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+.pin-mode-btn:hover {
+    color: #0f172a;
+    background: rgba(15, 23, 42, 0.05);
+}
+
+.pin-mode-btn.active {
+    background: #0f172a;
+    color: #ffffff;
+    box-shadow: 0 2px 5px rgba(15, 23, 42, 0.25);
+}
+
 .custom-pin-badge {
     display: inline-flex;
     align-items: center;
@@ -621,6 +671,27 @@ body, html {
 }
 .pin-number.warning {
     background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+.custom-pin-badge.pin-mode-number {
+    padding: 2px;
+    border-radius: 14px;
+    max-width: none;
+}
+.custom-pin-badge.pin-mode-number .pin-number {
+    margin-right: 0;
+    min-width: 20px;
+    width: auto;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 800;
+}
+.custom-pin-badge.is-multi-building.pin-mode-number {
+    padding: 2px 6px 2px 2px;
+}
+.custom-pin-badge.is-multi-building.pin-mode-number .pin-number {
+    margin-right: 3px;
 }
 .pin-label {
     font-size: 11px;
