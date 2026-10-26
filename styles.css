@@ -1,4 +1,4 @@
-/* ----------------------------------------------------
+﻿/* ----------------------------------------------------
    경로당 주소 지도 관리자 (Senior Center Map Manager)
    Naver Map Style Design System
 ---------------------------------------------------- */
@@ -1145,8 +1145,8 @@ body, html {
     .mobile-only-btn,
     .sales-rep-filter-box,
     #sales-rep-filter-select,
-    .pin-mode-toggle,
-    .map-pin-mode-bar {
+    .pin-mode-toggle {
+
         display: none !important;
     }
 
@@ -1363,6 +1363,49 @@ body, html {
     #modal-edit-place select,
     #modal-edit-place textarea {
         font-size: 15px !important;
+    }
+
+    /* Mobile Floating Pin Mode Selector (번호 / 번호+경로당) */
+    .map-pin-mode-bar {
+        display: inline-flex !important;
+        position: absolute !important;
+        top: 10px !important;
+        left: 10px !important;
+        z-index: 500 !important;
+        background: rgba(255, 255, 255, 0.96) !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.16) !important;
+        border: 1px solid rgba(0, 0, 0, 0.12) !important;
+        padding: 3px !important;
+        border-radius: 10px !important;
+        gap: 3px !important;
+    }
+
+    .map-pin-mode-bar .pin-mode-btn {
+        border: none !important;
+        background: transparent !important;
+        color: #475569 !important;
+        font-size: 12.5px !important;
+        font-weight: 700 !important;
+        padding: 6px 11px !important;
+        border-radius: 7px !important;
+        cursor: pointer !important;
+        transition: all 0.15s ease !important;
+        white-space: nowrap !important;
+        line-height: 1.2 !important;
+        touch-action: manipulation !important;
+        -webkit-tap-highlight-color: transparent !important;
+    }
+
+    .map-pin-mode-bar .pin-mode-btn:hover {
+        color: #0f172a !important;
+    }
+
+    .map-pin-mode-bar .pin-mode-btn.active {
+        background: #0f172a !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.28) !important;
     }
 }
 

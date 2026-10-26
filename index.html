@@ -38,7 +38,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Application Stylesheet -->
-    <link rel="stylesheet" href="styles.css?v=20261026_pwa_v1">
+    <link rel="stylesheet" href="styles.css?v=20261027_pin_mode_v1">
 </head>
 <body>
     <div id="app">
@@ -63,7 +63,7 @@
                 </button>
                 <div class="pin-mode-toggle" title="지도 핀 표시 방식 선택">
                     <button type="button" class="pin-mode-btn active" data-pin-mode="number">번호</button>
-                    <button type="button" class="pin-mode-btn" data-pin-mode="number_name">번호+경로당명</button>
+                    <button type="button" class="pin-mode-btn" data-pin-mode="number_name">번호+경로당</button>
                 </div>
                 <button id="btn-save-all-changes" class="btn btn-primary" style="background:#2563eb; border-color:#1d4ed8; font-weight:700; box-shadow:0 2px 6px rgba(37,99,235,0.35);" title="💾 전체 변경 사항 서버에 즉시 저장">
                     <i class="fa-solid fa-floppy-disk"></i> 변경사항 저장
@@ -169,7 +169,7 @@
                 <!-- Floating Pin Display Mode Selector (Top-Left of Map, PC only) -->
                 <div class="map-pin-mode-bar" title="지도 핀 표시 방식 선택">
                     <button type="button" class="pin-mode-btn active" data-pin-mode="number">번호</button>
-                    <button type="button" class="pin-mode-btn" data-pin-mode="number_name">번호+경로당명</button>
+                    <button type="button" class="pin-mode-btn" data-pin-mode="number_name">번호+경로당</button>
                 </div>
 
                 <!-- Floating Map Controls (앱설치, 내 위치보기, 모든위치 보기) -->
@@ -603,7 +603,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=20261026_pwa_v1"></script>
+    <script src="app.js?v=20261027_pin_mode_v1"></script>
 </body>
 </html>
 

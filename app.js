@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 경로당 주소 일괄 등록 & 지도 관리자 (Senior Center Map Manager)
  * Official Native Kakao Maps API Integration & Smart Geocoding Engine
  */
@@ -127,7 +127,7 @@ const state = {
     masterPin: localStorage.getItem("master_pin") || "1234",
     searchKeyword: "",
     selectedPlaceId: null,
-    pinDisplayMode: "number",
+    pinDisplayMode: localStorage.getItem("senior_center_pin_mode") || "number",
     kakaoJsKey: localStorage.getItem("kakao_js_key") || "82823b59e8640ba8b58e403c7463064a",
     lastSavedTimestamp: parseInt(localStorage.getItem("senior_center_last_saved") || "0", 10),
     activeMapEngine: "kakao", // "kakao" or "leaflet"
@@ -1242,6 +1242,7 @@ function buildPinBadgeHtml(clusterPlaces, groupPlaces) {
 
 function setPinDisplayMode(mode) {
     state.pinDisplayMode = mode === "number_name" ? "number_name" : "number";
+    try { localStorage.setItem("senior_center_pin_mode", state.pinDisplayMode); } catch (e) {}
     document.querySelectorAll(".pin-mode-btn").forEach(btn => {
         btn.classList.toggle("active", btn.getAttribute("data-pin-mode") === state.pinDisplayMode);
     });
@@ -1956,6 +1957,18 @@ function renderLeafletMarkers(places = null, shouldFitBounds = false) {
    UI Event Handlers & Modal Logic
 ---------------------------------------------------- */
 function initUIEvents() {
+    // Sync initial active state for pin display mode
+    document.querySelectorAll(".pin-mode-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.getAttribute("data-pin-mode") === state.pinDisplayMode);
+    });
+
+    // Prevent map dragging/tapping on mobile pin-mode bar
+    document.querySelectorAll(".map-pin-mode-bar, .pin-mode-toggle").forEach(bar => {
+        ["touchstart", "touchend", "mousedown", "pointerdown"].forEach(evtName => {
+            bar.addEventListener(evtName, (e) => e.stopPropagation());
+        });
+    });
+
     document.querySelectorAll(".pin-mode-btn").forEach(btn => {
         btn.addEventListener("click", (e) => {
             e.stopPropagation();
