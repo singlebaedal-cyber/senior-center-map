@@ -480,7 +480,116 @@ function loadKakaoSdk(appKey) {
 }
 
 // Application Initialization
+let deferredPwaPrompt = null;
+
+function isRunningStandalonePwa() {
+    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+}
+
+function updatePwaInstallButtonsUI() {
+    const isStandalone = isRunningStandalonePwa();
+    document.querySelectorAll(".btn-install-pwa").forEach(btn => {
+        btn.style.display = isStandalone ? "none" : "";
+    });
+    const nativeBtn = document.getElementById("btn-trigger-native-pwa");
+    if (nativeBtn) {
+        nativeBtn.style.display = deferredPwaPrompt ? "inline-flex" : "none";
+    }
+}
+
+window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPwaPrompt = e;
+    updatePwaInstallButtonsUI();
+});
+
+window.addEventListener("appinstalled", () => {
+    deferredPwaPrompt = null;
+    updatePwaInstallButtonsUI();
+    const modalPwa = document.getElementById("modal-pwa-install");
+    if (modalPwa) modalPwa.style.display = "none";
+});
+
+function initPwaSupport() {
+    if ("serviceWorker" in navigator && window.location.protocol.startsWith("http")) {
+        navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+    updatePwaInstallButtonsUI();
+
+    const modalPwa = document.getElementById("modal-pwa-install");
+    const kakaoBox = document.getElementById("pwa-kakaotalk-box");
+    const btnChromeIntent = document.getElementById("btn-open-chrome-intent");
+    const btnNativePwa = document.getElementById("btn-trigger-native-pwa");
+    const btnCopyUrl = document.getElementById("btn-copy-pwa-url");
+
+    document.querySelectorAll(".btn-install-pwa").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            if (deferredPwaPrompt) {
+                deferredPwaPrompt.prompt();
+                const choice = await deferredPwaPrompt.userChoice;
+                if (choice && choice.outcome === "accepted") {
+                    deferredPwaPrompt = null;
+                    updatePwaInstallButtonsUI();
+                    return;
+                }
+            }
+            if (kakaoBox) {
+                const isKakaoAndroid = /KAKAOTALK/i.test(navigator.userAgent) && /Android/i.test(navigator.userAgent);
+                kakaoBox.style.display = isKakaoAndroid ? "block" : "none";
+            }
+            updatePwaInstallButtonsUI();
+            if (modalPwa) modalPwa.style.display = "flex";
+        });
+    });
+
+    if (btnNativePwa) {
+        btnNativePwa.addEventListener("click", async () => {
+            if (!deferredPwaPrompt) return;
+            deferredPwaPrompt.prompt();
+            const choice = await deferredPwaPrompt.userChoice;
+            if (choice && choice.outcome === "accepted") {
+                deferredPwaPrompt = null;
+                updatePwaInstallButtonsUI();
+                if (modalPwa) modalPwa.style.display = "none";
+            }
+        });
+    }
+
+    if (btnChromeIntent) {
+        btnChromeIntent.addEventListener("click", () => {
+            const targetUrl = window.location.href.replace(/^https?:\/\//i, "");
+            window.location.href = `intent://${targetUrl}#Intent;scheme=https;package=com.android.chrome;end`;
+        });
+    }
+
+    if (btnCopyUrl) {
+        btnCopyUrl.addEventListener("click", () => {
+            const url = window.location.origin + window.location.pathname;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(() => {
+                    alert(`📲 앱 주소가 복사되었습니다!\n${url}\n\n핸드폰 카카오톡 나에게 보내기 등으로 전송 후 크롬/Safari에서 열어주세요.`);
+                });
+            } else {
+                prompt("아래 주소를 복사하세요:", url);
+            }
+        });
+    }
+
+    if (modalPwa) {
+        modalPwa.querySelectorAll(".btn-close-modal").forEach(btn => {
+            btn.addEventListener("click", () => {
+                modalPwa.style.display = "none";
+            });
+        });
+        modalPwa.addEventListener("click", (e) => {
+            if (e.target === modalPwa) modalPwa.style.display = "none";
+        });
+    }
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
+    initPwaSupport();
     await initData();
     initUIEvents();
 

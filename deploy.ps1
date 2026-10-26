@@ -28,7 +28,11 @@ $filesToDeploy = @(
     @{ path = "styles.css"; fullPath = "$projectDir\styles.css" },
     @{ path = "app.js"; fullPath = "$projectDir\app.js" },
     @{ path = "api/config.js"; fullPath = "$projectDir\api\config.js" },
-    @{ path = "api/data.js"; fullPath = "$projectDir\api\data.js" }
+    @{ path = "api/data.js"; fullPath = "$projectDir\api\data.js" },
+    @{ path = "manifest.json"; fullPath = "$projectDir\manifest.json" },
+    @{ path = "sw.js"; fullPath = "$projectDir\sw.js" },
+    @{ path = "icon-192.png"; fullPath = "$projectDir\icon-192.png" },
+    @{ path = "icon-512.png"; fullPath = "$projectDir\icon-512.png" }
 )
 
 $filePayloads = @()

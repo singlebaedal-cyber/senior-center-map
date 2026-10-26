@@ -7,6 +7,14 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>경로당 주소 일괄 등록 & 지도 관리자 (Kakao Map Native)</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#03cf5d">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="경로당지도">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="icon" type="image/png" href="/icon-192.png">
     
     <!-- Google Fonts: Pretendard -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,7 +38,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Application Stylesheet -->
-    <link rel="stylesheet" href="styles.css?v=20261026_import_fix_v1">
+    <link rel="stylesheet" href="styles.css?v=20261026_pwa_v1">
 </head>
 <body>
     <div id="app">
@@ -50,6 +58,9 @@
             </div>
 
             <div class="header-actions">
+                <button type="button" class="btn btn-primary btn-install-pwa" style="background:#059669; border-color:#047857; font-weight:700;" title="📲 스마트폰/PC 홈 화면에 앱으로 설치">
+                    <i class="fa-solid fa-mobile-screen-button"></i> 앱 설치
+                </button>
                 <div class="pin-mode-toggle" title="지도 핀 표시 방식 선택">
                     <button type="button" class="pin-mode-btn active" data-pin-mode="number">번호</button>
                     <button type="button" class="pin-mode-btn" data-pin-mode="number_name">번호+경로당명</button>
@@ -159,6 +170,9 @@
                 <div class="map-pin-mode-bar" title="지도 핀 표시 방식 선택">
                     <button type="button" class="pin-mode-btn active" data-pin-mode="number">번호</button>
                     <button type="button" class="pin-mode-btn" data-pin-mode="number_name">번호+경로당명</button>
+                    <button type="button" class="pin-mode-btn btn-install-pwa" style="background:#03cf5d; color:#ffffff; margin-left:2px;" title="홈 화면에 앱 설치">
+                        <i class="fa-solid fa-download"></i> 앱설치
+                    </button>
                 </div>
 
                 <!-- Floating Map Controls (모든위치 보기, 내 위치보기) -->
@@ -522,7 +536,74 @@
     </div>
 
     <!-- Application Script -->
-    <script src="app.js?v=20261026_import_fix_v1"></script>
+    <!-- Modal: PWA App Installation Guide -->
+    <div id="modal-pwa-install" class="modal-backdrop" style="display: none;">
+        <div class="modal-content" style="max-width: 440px; border-radius: 16px;">
+            <div class="modal-header" style="background: #03cf5d; color: white;">
+                <h2 style="color: white;"><i class="fa-solid fa-mobile-screen-button"></i> 📲 핸드폰 앱으로 설치하기</h2>
+                <button type="button" class="btn-close-modal" style="color: white;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 18px 20px; line-height: 1.55;">
+                <div style="display: flex; align-items: center; gap: 12px; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 12px; padding: 12px 14px; margin-bottom: 14px;">
+                    <img src="/icon-192.png" alt="경로당지도 아이콘" style="width: 48px; height: 48px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+                    <div>
+                        <div style="font-size: 15px; font-weight: 800; color: #14532d;">경로당 지도 관리자 앱</div>
+                        <div style="font-size: 12px; color: #166534;">홈 화면에 아이콘을 추가하면 주소창 없이 진짜 앱처럼 1초 만에 바로 열립니다!</div>
+                    </div>
+                </div>
+
+                <!-- KakaoTalk In-App Browser Notice -->
+                <div id="pwa-kakaotalk-box" style="display: none; background: #fef9c3; border: 1.5px solid #facc15; border-radius: 10px; padding: 12px; margin-bottom: 14px;">
+                    <div style="font-size: 13px; font-weight: 800; color: #854d0e; margin-bottom: 6px;">
+                        ⚠️ 현재 카카오톡 내부 브라우저로 접속 중입니다
+                    </div>
+                    <p style="font-size: 12px; color: #713f12; margin-bottom: 8px;">
+                        아래 버튼을 눌러 <b>크롬(Chrome) 브라우저</b>로 이동하시면 즉시 앱 설치가 가능합니다.
+                    </p>
+                    <button type="button" id="btn-open-chrome-intent" class="btn btn-primary" style="width: 100%; justify-content: center; background: #2563eb; border-color: #1d4ed8; font-weight: 700; padding: 10px;">
+                        <i class="fa-brands fa-chrome"></i> 크롬(Chrome)으로 열어서 앱 설치하기
+                    </button>
+                </div>
+
+                <!-- Direct Install Button (if supported) -->
+                <button type="button" id="btn-trigger-native-pwa" class="btn btn-primary" style="display: none; width: 100%; justify-content: center; background: #03cf5d; border-color: #02b350; font-size: 14px; font-weight: 800; padding: 12px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(3, 207, 93, 0.35);">
+                    <i class="fa-solid fa-download"></i> 지금 바로 홈 화면에 앱 설치하기
+                </button>
+
+                <!-- Android Instructions -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; margin-bottom: 10px;">
+                    <div style="font-size: 13px; font-weight: 800; color: #0f172a; margin-bottom: 6px;">
+                        🤖 갤럭시 / 안드로이드폰 (Chrome · 삼성 인터넷)
+                    </div>
+                    <ol style="font-size: 12.5px; color: #334155; padding-left: 18px; margin: 0;">
+                        <li>우측 상단 메뉴 <b>[ ⋮ ]</b> (삼성 인터넷은 하단 <b>[ ≡ ]</b>) 터치</li>
+                        <li><b>[앱 설치]</b> 또는 <b>[홈 화면에 추가]</b> 선택</li>
+                        <li>핸드폰 바탕화면에 생성된 <b>[경로당지도]</b> 아이콘으로 실행!</li>
+                    </ol>
+                </div>
+
+                <!-- iOS Instructions -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px;">
+                    <div style="font-size: 13px; font-weight: 800; color: #0f172a; margin-bottom: 6px;">
+                        🍎 아이폰 / 아이패드 (Safari 브라우저)
+                    </div>
+                    <ol style="font-size: 12.5px; color: #334155; padding-left: 18px; margin: 0;">
+                        <li>Safari 하단 가운데 <b>공유 버튼 [ <i class="fa-solid fa-arrow-up-from-bracket"></i> ]</b> 터치</li>
+                        <li>메뉴를 내려서 <b>[홈 화면에 추가 ➕]</b> 터치 후 우측 상단 <b>[추가]</b></li>
+                        <li>바탕화면의 <b>[경로당지도]</b> 앱 아이콘으로 언제든 바로 실행!</li>
+                    </ol>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #f8fafc; border-top: 1px solid #e2e8f0; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
+                <button type="button" id="btn-copy-pwa-url" class="btn btn-secondary" style="font-size: 12px; font-weight: 700;">
+                    <i class="fa-solid fa-link"></i> 앱 주소 복사 (카톡 전송용)
+                </button>
+                <button type="button" class="btn btn-primary btn-close-modal" style="background: #0f172a; border-color: #0f172a; font-size: 13px; font-weight: 700;">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=20261026_pwa_v1"></script>
 </body>
 </html>
 
