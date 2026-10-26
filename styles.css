@@ -1144,7 +1144,9 @@ body, html {
     .top-navbar,
     .mobile-only-btn,
     .sales-rep-filter-box,
-    #sales-rep-filter-select {
+    #sales-rep-filter-select,
+    .pin-mode-toggle,
+    .map-pin-mode-bar {
         display: none !important;
     }
 

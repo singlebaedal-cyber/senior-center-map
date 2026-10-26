@@ -166,17 +166,17 @@
                 <!-- Leaflet Fallback Map Container -->
                 <div id="leaflet-map" style="width:100%; height:100%; display:none;"></div>
 
-                <!-- Floating Pin Display Mode Selector (Top-Left of Map for PC & Mobile) -->
+                <!-- Floating Pin Display Mode Selector (Top-Left of Map, PC only) -->
                 <div class="map-pin-mode-bar" title="지도 핀 표시 방식 선택">
                     <button type="button" class="pin-mode-btn active" data-pin-mode="number">번호</button>
                     <button type="button" class="pin-mode-btn" data-pin-mode="number_name">번호+경로당명</button>
-                    <button type="button" class="pin-mode-btn btn-install-pwa" style="background:#03cf5d; color:#ffffff; margin-left:2px;" title="홈 화면에 앱 설치">
-                        <i class="fa-solid fa-download"></i> 앱설치
-                    </button>
                 </div>
 
-                <!-- Floating Map Controls (모든위치 보기, 내 위치보기) -->
+                <!-- Floating Map Controls (앱설치, 내 위치보기, 모든위치 보기) -->
                 <div class="map-controls">
+                    <button id="btn-floating-install-pwa" class="map-btn btn-install-pwa" title="홈 화면에 앱 설치" style="background:#03cf5d; color:#ffffff; border-color:#02b350;">
+                        <i class="fa-solid fa-download"></i>
+                    </button>
                     <button id="btn-my-location" class="map-btn" title="내 위치보기 (GPS)">
                         <i class="fa-solid fa-location-arrow"></i>
                     </button>
